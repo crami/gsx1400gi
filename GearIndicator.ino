@@ -5,10 +5,23 @@
 
 #include <EEPROM.h>
 
+// Gear Values
+#define GEAR_1 320
+#define GEAR_2 420
+#define GEAR_3 580
+#define GEAR_4 700
+#define GEAR_5 880
+#define GEAR_6 980
+#define GEAR_N 1000
+#define KILL 100
+
 int base = 2;
 int gearPin = A0;
 int gearValue = 0;
 byte gear = 0;
+byte kill = 0;
+byte killSweapPos = 1;
+byte killSweapDir = 0;
 int dimPin = 9;
 byte dimValue = 0;
 int watchdogPin = 13;
@@ -40,11 +53,11 @@ void setup() {
   
   // Sweep
   for (i=1; i < 7; i++) {
-    gearlight(i);
+    gearLight(i);
     delay(90);
   }
   for (i=6; i > 0; i--) {
-    gearlight(i);
+    gearLight(i);
     delay(90);
   }
   // Serial.begin(9600);
@@ -54,22 +67,36 @@ void setup() {
 void loop() {
   gearValue = analogRead(gearPin);
   // Serial.println(gearValue, DEC);
-  if (gearValue < 160) {
+  if (gearValue < KILL) {
+    gear = 0;
+    kill = 1;
+  } else if (gearValue < GEAR_1) {
     gear = 1;
-  } else if (gearValue < 320) {
+    kill = 0;
+  } else if (gearValue < GEAR_2) {
     gear = 2;
-  } else if (gearValue < 480) {
+    kill = 0;
+  } else if (gearValue < GEAR_3) {
     gear = 3;
-  } else if (gearValue < 650) {
+    kill = 0;
+  } else if (gearValue < GEAR_4) {
     gear = 4;
-  } else if (gearValue < 800) {
+    kill = 0;
+  } else if (gearValue < GEAR_5) {
     gear = 5;
-  } else if (gearValue < 960) {
+    kill = 0;
+  } else if (gearValue < GEAR_6) {
     gear = 6;
+    kill = 0;
   } else {
     gear = 0;
+    kill = 0;
   }
-  gearlight(gear);
+  if (kill == 0) {
+    gearLight(gear);
+  } else {
+    killSweap();
+  }
   if ((watchdogCounter % 20) == 0) {
     digitalWrite(watchdogPin, HIGH);
   } else if ((watchdogCounter % 20) == 10) {
@@ -90,7 +117,7 @@ void loop() {
   }
 }
 
-void gearlight(int g) {
+void gearLight(int g) {
   int i;
   
   // Serial.println(g, DEC);
@@ -104,3 +131,18 @@ void gearlight(int g) {
   }
 }
 
+void killSweap() {
+  gearLight(killSweapPos);
+  if (killSweapDir == 0) {
+    killSweapPos++;
+  } else {
+    killSweapPos--;
+  }
+  if (killSweapPos > 6) {
+    killSweapDir = 1;
+    killSweapPos = 6;
+  } else if (killSweapPos < 1) {
+    killSweapDir = 0;
+    killSweapPos = 1;
+  }
+}
