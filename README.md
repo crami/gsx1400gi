@@ -11,6 +11,5 @@ The Program reads out the analog value from the gear sensor and displays the gea
 
 TODO:
 
-  - Make brightnes ajustable (sort of allready works, need button input and eeprom storage)
   - Realy test it on a real bike (till now only a breadboard setup)
 
