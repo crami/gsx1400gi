@@ -1,12 +1,26 @@
+/*
+ *  Geear Indicator for a Suzoky GSX 1400
+ *  (c) 2014 by Matthias Cramer, cramer@freestone.net
+ */
+
+#include <EEPROM.h>
 
 int base = 2;
 int gearPin = A0;
 int gearValue = 0;
-int gear = 0;
+byte gear = 0;
 int dimPin = 9;
-int dimValue = 127;
+byte dimValue = 0;
 int watchdogPin = 13;
-int watchdogCounter = 0;
+byte watchdogCounter = 0;
+int buttonPin = 8;
+byte buttonState= 1;
+
+static byte dimArray[] = {0, 70, 130, 180, 220};
+static byte dimSize = sizeof(dimArray);
+
+// EEPROM Addresses
+static int dimAddress = 0;
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -17,8 +31,13 @@ void setup() {
   }
   pinMode(dimPin, OUTPUT);
   pinMode(watchdogPin, OUTPUT);
-  analogWrite(dimPin, dimValue);
-  Serial.begin(9600);
+  pinMode(buttonPin, INPUT_PULLUP);
+  dimValue =  EEPROM.read(dimAddress);
+  if (dimValue > dimSize -1) {
+    dimValue = 0;
+  }
+  analogWrite(dimPin, dimArray[dimValue]);
+  
   // Sweep
   for (i=1; i < 7; i++) {
     gearlight(i);
@@ -28,6 +47,7 @@ void setup() {
     gearlight(i);
     delay(90);
   }
+  // Serial.begin(9600);
 }
 
 // the loop routine runs over and over again forever:
@@ -50,18 +70,24 @@ void loop() {
     gear = 0;
   }
   gearlight(gear);
-  analogWrite(dimPin, dimValue);
   if ((watchdogCounter % 20) == 0) {
     digitalWrite(watchdogPin, HIGH);
   } else if ((watchdogCounter % 20) == 10) {
     digitalWrite(watchdogPin, LOW);
   }
-  dimValue++;
-  if (dimValue > 250) {
-    dimValue = 20;
-  }
   delay(50);
   watchdogCounter++;
+  if (digitalRead(buttonPin) == 0 and buttonState == 1) {  // Button got pressed
+    buttonState=0;
+    dimValue++;
+    if (dimValue >= dimSize) {
+      dimValue=0;
+    }
+    analogWrite(dimPin, dimArray[dimValue]);
+    EEPROM.write(dimAddress, dimValue);
+  } else if (digitalRead(buttonPin) == 1 and buttonState == 0) { // Button got released
+    buttonState=1;
+  }
 }
 
 void gearlight(int g) {
