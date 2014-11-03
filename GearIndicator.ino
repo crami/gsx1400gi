@@ -1,6 +1,8 @@
 /*
  *  Geear Indicator for a Suzoky GSX 1400
  *  (c) 2014 by Matthias Cramer, cramer@freestone.net
+ *   CC BY-NC-SA (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+ *
  */
 
 #include <EEPROM.h>
@@ -15,7 +17,15 @@
 #define GEAR_N 1000
 #define KILL 100
 
-int base = 2;
+// Static array for LED dim values
+static byte dimArray[] = {0, 70, 130, 180, 220};
+static byte dimSize = sizeof(dimArray);
+
+// EEPROM Addresses
+static int dimAddress = 0;
+
+// Global Variables
+int baseLedPin = 2;
 int gearPin = A0;
 int gearValue = 0;
 byte gear = 0;
@@ -29,18 +39,12 @@ byte watchdogCounter = 0;
 int buttonPin = 8;
 byte buttonState= 1;
 
-static byte dimArray[] = {0, 70, 130, 180, 220};
-static byte dimSize = sizeof(dimArray);
-
-// EEPROM Addresses
-static int dimAddress = 0;
-
 // the setup routine runs once when you press reset:
 void setup() {
    int i =0;  
   // initialize the digital pin as an output.
   for (i=0; i < 6; i++) {
-    pinMode(base + i, OUTPUT);
+    pinMode(baseLedPin + i, OUTPUT);
   }
   pinMode(dimPin, OUTPUT);
   pinMode(watchdogPin, OUTPUT);
@@ -117,6 +121,7 @@ void loop() {
   }
 }
 
+// Disable all Leds but the one for the selected gear
 void gearLight(int g) {
   int i;
   
@@ -124,13 +129,14 @@ void gearLight(int g) {
   
   for (i=1; i<7; i ++) {
     if (i==g) {
-      digitalWrite(base + i - 1, HIGH);
+      digitalWrite(baseLedPin + i - 1, HIGH);
     } else {
-      digitalWrite(base + i - 1, LOW);
+      digitalWrite(baseLedPin + i - 1, LOW);
     }
   }
 }
 
+// Sweap LEDs up and down when kill switch is on or side stand is down
 void killSweap() {
   gearLight(killSweapPos);
   if (killSweapDir == 0) {
@@ -146,3 +152,4 @@ void killSweap() {
     killSweapPos = 1;
   }
 }
+
