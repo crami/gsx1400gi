@@ -7,9 +7,10 @@
 
 Written for a Mini Arduino Pro 5v, 16Mhz version.
 
-The Program reads out the analog value from the gear sensor and displays the gear on 6 LED.
+The Program reads out the analog value from the gear
+sensor and displays the gear on 6 LED placed behind
+the number 1 to 6 on the RPM dial.
 
-TODO:
 
-  - Realy test it on a real bike (till now only a breadboard setup)
+
 
