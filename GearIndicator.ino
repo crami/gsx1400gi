@@ -1,7 +1,7 @@
 /*
  *  Geear Indicator for a Suzoky GSX 1400
  *  (c) 2014 by Matthias Cramer, cramer@freestone.net
- *   CC BY-NC-SA (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+ *  CC BY-NC-SA (http://creativecommons.org/licenses/by-nc-sa/4.0/)
  *
  */
 
@@ -17,6 +17,10 @@
 #define GEAR_N 1000
 #define KILL 100
 
+// delays
+#define INITIAL_SWEEP_DELAY 80
+#define LOOP_DELAY 50
+
 // Static array for LED dim values
 static byte dimArray[] = {0, 70, 130, 180, 220};
 static byte dimSize = sizeof(dimArray);
@@ -29,6 +33,7 @@ int baseLedPin = 2;
 int gearPin = A0;
 int gearValue = 0;
 byte gear = 0;
+byte oldgear =0;
 byte kill = 0;
 byte killSweapPos = 1;
 byte killSweapDir = 0;
@@ -46,11 +51,9 @@ void setup() {
   for (i=0; i < 6; i++) {
     pinMode(baseLedPin + i, OUTPUT);
   }
-  pinMode(dimPin, OUTPUT);
-  pinMode(watchdogPin, OUTPUT);
-  pinMode(buttonPin, INPUT_PULLUP);
+  
   dimValue =  EEPROM.read(dimAddress);
-  if (dimValue > dimSize -1) {
+  if (dimValue > dimSize -1) { // EEPROM is not initialized or array site has changed
     dimValue = 0;
   }
   analogWrite(dimPin, dimArray[dimValue]);
@@ -58,19 +61,20 @@ void setup() {
   // Sweep
   for (i=1; i < 7; i++) {
     gearLight(i);
-    delay(90);
+    delay(INITIAL_SWEEP_DELAY);
   }
   for (i=6; i > 0; i--) {
     gearLight(i);
-    delay(90);
+    delay(INITIAL_SWEEP_DELAY);
   }
-  // Serial.begin(9600);
+  
+  pinMode(watchdogPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
 }
 
 // the loop routine runs over and over again forever:
 void loop() {
   gearValue = analogRead(gearPin);
-  // Serial.println(gearValue, DEC);
   if (gearValue < KILL) {
     gear = 0;
     kill = 1;
@@ -97,7 +101,9 @@ void loop() {
     kill = 0;
   }
   if (kill == 0) {
-    gearLight(gear);
+    if (gear != oldgear) {
+      gearLight(gear);
+    }
   } else {
     killSweap();
   }
@@ -106,8 +112,7 @@ void loop() {
   } else if ((watchdogCounter % 20) == 10) {
     digitalWrite(watchdogPin, LOW);
   }
-  delay(50);
-  watchdogCounter++;
+
   if (digitalRead(buttonPin) == 0 and buttonState == 1) {  // Button got pressed
     buttonState=0;
     dimValue++;
@@ -119,21 +124,19 @@ void loop() {
   } else if (digitalRead(buttonPin) == 1 and buttonState == 0) { // Button got released
     buttonState=1;
   }
+
+  watchdogCounter++;
+  delay(LOOP_DELAY);
+
 }
 
 // Disable all Leds but the one for the selected gear
 void gearLight(int g) {
   int i;
   
-  // Serial.println(g, DEC);
-  
-  for (i=1; i<7; i ++) {
-    if (i==g) {
-      digitalWrite(baseLedPin + i - 1, HIGH);
-    } else {
-      digitalWrite(baseLedPin + i - 1, LOW);
-    }
-  }
+  digitalWrite(baseLedPin - 1 + oldgear, LOW);
+  digitalWrite(baseLedPin -1 + g, HIGH);
+  oldgear=g;
 }
 
 // Sweap LEDs up and down when kill switch is on or side stand is down
