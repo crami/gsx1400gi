@@ -25,6 +25,9 @@
 static byte dimArray[] = {0, 70, 130, 180, 220};
 static byte dimSize = sizeof(dimArray);
 
+// LED brightness correction
+static byte dimCorr[] = {0, 0, 0, 0, 15, 10};
+
 // EEPROM Addresses
 static int dimAddress = 0;
 
@@ -102,6 +105,7 @@ void loop() {
   }
   if (kill == 0) {
     if (gear != oldgear) {
+      analogWrite(dimPin, dimArray[dimValue]+dimCorr[gear-1]);
       gearLight(gear);
     }
   } else {
