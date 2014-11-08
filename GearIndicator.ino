@@ -8,11 +8,11 @@
 #include <EEPROM.h>
 
 // Gear Values
-#define GEAR_1 320
-#define GEAR_2 420
-#define GEAR_3 580
-#define GEAR_4 700
-#define GEAR_5 880
+#define GEAR_1 330
+#define GEAR_2 450
+#define GEAR_3 600
+#define GEAR_4 750
+#define GEAR_5 890
 #define GEAR_6 980
 #define GEAR_N 1000
 #define KILL 100
