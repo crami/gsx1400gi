@@ -22,11 +22,11 @@
 #define LOOP_DELAY 50
 
 // Static array for LED dim values
-static byte dimArray[] = {0, 70, 130, 180, 220};
+static int dimArray[] = {0, 70, 130, 180, 220};
 static byte dimSize = sizeof(dimArray);
 
 // LED brightness correction
-static byte dimCorr[] = {0, 0, 0, 0, 15, 10};
+static int dimCorr[] = {0, 0, 0, 0, 0, 5};
 
 // EEPROM Addresses
 static int dimAddress = 0;
@@ -58,9 +58,7 @@ void setup() {
   dimValue =  EEPROM.read(dimAddress);
   if (dimValue > dimSize -1) { // EEPROM is not initialized or array site has changed
     dimValue = 0;
-  }
-  analogWrite(dimPin, dimArray[dimValue]);
-  
+  }  
   // Sweep
   for (i=1; i < 7; i++) {
     gearLight(i);
@@ -105,7 +103,7 @@ void loop() {
   }
   if (kill == 0) {
     if (gear != oldgear) {
-      analogWrite(dimPin, dimArray[dimValue]+dimCorr[gear-1]);
+      
       gearLight(gear);
     }
   } else {
@@ -136,9 +134,12 @@ void loop() {
 
 // Disable all Leds but the one for the selected gear
 void gearLight(int g) {
-  int i;
+  int dv=0;
+  
+  dv=dimArray[dimValue]+dimCorr[(g-1)];
   
   digitalWrite(baseLedPin - 1 + oldgear, LOW);
+  analogWrite(dimPin, dv);
   digitalWrite(baseLedPin -1 + g, HIGH);
   oldgear=g;
 }
