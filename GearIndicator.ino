@@ -56,7 +56,7 @@ void setup() {
   }
   
   dimValue =  EEPROM.read(dimAddress);
-  if (dimValue > dimSize -1) { // EEPROM is not initialized or array site has changed
+  if (dimValue > dimSize -1) { // EEPROM is not initialized or array size has changed
     dimValue = 0;
   }  
   // Sweep
@@ -132,7 +132,7 @@ void loop() {
 
 }
 
-// Disable all Leds but the one for the selected gear
+// Disable previous LED and enable the one for the selected gear
 void gearLight(int g) {
   int dv=0;
   
